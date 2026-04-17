@@ -1,10 +1,19 @@
 # Titan Pickleball Drill Schedule
 
 ## What this is
-A single-file HTML training schedule for pickleball drill sessions using a Titan ACE ball machine. Built for mobile-first use at the court. No build tools, no dependencies, no framework — just one HTML file with inline CSS and JS.
+A mobile-first training schedule for pickleball drill sessions using a Titan ACE ball machine. Built as a Vite + React app and deployed to GitHub Pages at https://nginsberg.github.io/weekly-training-schedule/ — opened on a phone at the court.
 
-## The file
-- `titan_drill_schedule.html` — the entire app. Everything is self-contained.
+## Stack
+- Vite + React 18 (JSX, no TypeScript)
+- Inline styles via React style objects — no CSS framework, no CSS files
+- DM Sans from Google Fonts (loaded via `<link>` inside the component)
+- GitHub Actions workflow at `.github/workflows/deploy.yml` builds and publishes to Pages on every push to `main`
+
+## Files
+- `src/WeeklySchedule.jsx` — the entire app. All state, data, styling, and components live here.
+- `src/main.jsx` — React entrypoint, renders `<WeeklySchedule />`.
+- `index.html` — shell with viewport meta + dark background so the page doesn't flash white on load.
+- `vite.config.js` — sets `base: "/weekly-training-schedule/"` so asset paths resolve on GitHub Pages.
 
 ## Owner context
 - **Player:** Navarre, Broomfield CO. COO at a startup, trains mornings before work (W/Th/F) and evenings (M).
@@ -34,13 +43,24 @@ The Titan Drills Pro app supports 4 positions for pickleball: back-center, back-
 Each drill in a Titan sequence is up to 6 shots with individual control over: speed, height, location, spin, and feed rate. The Pro app stores 24 drills on the machine with unlimited in "My Collection." Drills can be shared via QR code.
 
 ## How to make changes
-When updating the schedule:
-- The entire app state is in a single `schedule` array in the `<script>` block
-- Each day has `blocks`, each block has a `type` (drill/play/lesson/lift), and drill blocks have a `detail` object with `warmup`, `drills[]`, and `cooldown`
-- Each drill has: `name`, `dur`, `reps`, `placement`, `titan` (settings string), `focus`, `levelUp`
-- The `placement` field is critical — always specify where the Titan goes AND where the player stands
-- Summary stats at the top (`stats` array) should be updated if total hours change
-- Keep the mobile-first dark theme, DM Sans font, accordion UI pattern
+All schedule content lives in the `weekSchedule` array at the top of `src/WeeklySchedule.jsx`. The shape:
+
+- `weekSchedule[]` — one entry per day: `{ day, blocks }`
+- `blocks[]` — one entry per session in that day: `{ time, type, label, duration, detail, note? }`
+  - `type` is one of `drill` / `play` / `lesson` / `lift` (drives color coding via `typeColors`)
+  - `detail` is `null` for play/lesson/lift sessions, or an object for drill sessions
+- `detail` (drill sessions only): `{ warmup: { duration, content }, blocks: [...], cooldown }`
+- `detail.blocks[]` — each drill inside a drill session: `{ name, duration, reps, titan, focus, levelUp }`
+  - `titan` is a single string describing machine position AND player position AND settings (speed/height/feed/direction). Always specify both ends — where the Titan sits and where the player stands.
+  - `titan: null` is valid when the drill uses a ball basket instead of the machine.
+
+Other things to update when scope changes:
+- `weekSummary` object inside `WeeklySchedule()` — drill/play/lift/lesson hours and PB-days count. Update if total hours shift.
+- `typeColors` — only change if adding a new session type.
+- Keep the mobile-first dark theme, DM Sans font, and accordion UI pattern intact.
+
+## Deploy
+Pushing to `main` triggers `.github/workflows/deploy.yml` which runs `npm ci && npm run build` and publishes `dist/` to GitHub Pages. Typical turnaround ~30-60s. No manual deploy step.
 
 ## Common update scenarios
 1. **After a coaching lesson:** Update Wednesday's flex slot drill with whatever the coach covered
@@ -56,4 +76,5 @@ When updating the schedule:
 - Placement notes (📍) in every drill block
 - Titan settings (⚙️) with specific speed/height/feed/direction
 - Color coding: blue=drill, green=play, purple=lesson, orange=lift
-- No external dependencies. No build step. Single file.
+- Styles are inline React style objects — do not introduce a CSS file or framework without good reason
+- Keep the dependency surface minimal: React + React DOM + Vite + `@vitejs/plugin-react`. Don't add UI libs, state libs, or routing — this is one screen
