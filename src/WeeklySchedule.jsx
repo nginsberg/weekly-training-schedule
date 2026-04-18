@@ -16,7 +16,7 @@ const weekSchedule = [
           },
           blocks: [
             {
-              name: "Deep Return Groover",
+              name: "Deep Return",
               duration: "20 min",
               reps: "~60 balls × 2 loads",
               titan: "Baseline center → you at return position. Speed 30-40 mph, medium height, 8 sec feed, alternating FH/BH.",
